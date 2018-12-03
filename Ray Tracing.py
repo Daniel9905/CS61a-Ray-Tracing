@@ -74,6 +74,9 @@ color = {
     'light_green' : (0.31, 1, 0.31),
     'violet' : (0.93, 0.51, 0.93),
     'table_brown' : (0.57, 0.43, 0.24),
+    'sky': (0.13*0.4, 0.18*0.4, 0.5),
+    # 'sky': (1, 1, 1),
+    'water':(0.14, 0.4, 0.5)
 }
 
 def bright_color(amount):
@@ -126,13 +129,15 @@ light_blue = color['light_blue']
 light_green = color['light_green']
 violet = color['violet']
 table_brown = color['table_brown']
+sky = color['sky']
+water = color['water']
 
 
 
 #Scene
 scene = {
     'origin' : (0, 0, 0),
-    'light' : (2, 2, 0),
+    'light' : (2, 1, 0),
 }
 
 camera = (0, 1, 0)
@@ -140,8 +145,8 @@ origin = scene['origin']
 light = scene['light']
 ambient = 0.2
 spheres = [
-    (500, (0, -500, 0), table_brown), # radius, position, color
-    (2, (0,    2,  10), orange), 
+    (500, (0, -500, 0), white), # radius, position, color
+    (2, (0,    2,  8), orange), 
     (0.8, (-1, 1, 3**0.5 + 3), light_green),
     (1, (-2, 1, 2 * 3**0.5 + 3), red),
     (0.8, (1, 1, 3**0.5 + 3), light_blue),
@@ -202,12 +207,12 @@ def render():
 #     x, y = position
 #     return (x, y)
 
-def ray_trace(source, direction, depth = 2):
+def ray_trace(source, direction, depth = 3):
     '''Return the color of each pixel'''
     distances = [intersect(source, direction, sphere) for sphere in spheres]
     hits = [(d, s) for d, s in zip(distances, spheres) if d] # filter out the spheres not in the line of sight
     if not hits: # if there's no sphere in the line of sight
-        return black
+        return sky
     distance, new_sphere = min(hits)
     _, center, color = new_sphere
     surface = add(source, scale(direction, distance))
@@ -217,18 +222,47 @@ def illumimnation(surface, center, direction, color, depth):
     '''Return the color given the angle of light and surface'''
     surface_normal = normalize(substract(surface, center))
     surface_to_light = normalize(substract(light, surface))
-    intensity = max(ambient, dot(surface_normal, surface_to_light))
+    distances = [(sphere, intersect(surface, surface_to_light, sphere)) for sphere in spheres]
+    hits = [(s, d) for s, d in distances if d and d>0.1 and d<1]
+    h = normalize(add(scale(direction, -1), surface_to_light))
+    intensity = max(ambient, dot(surface_normal, surface_to_light)) + max(ambient, dot(h,surface_normal))**100
+    intensity = min(intensity, 1)
     direct_light = scale(color, intensity)
-    if depth == 1:
-        return direct_light
-    else: 
-        # cosine = dot(direction, surface_normal)
-        # bounce = substract(direction, scale(surface_normal, 2 * cosine))
-        y_comp = scale(surface_normal, dot(direction, surface_normal))
-        bounce = substract(direction, scale(y_comp, 2))
-        reflected_light = ray_trace(surface, bounce, depth-1)
-        ratio = 0.5 + 0.5 * intensity ** 40
-        return mix(direct_light, reflected_light, ratio)
+    if not hits:
+        if depth == 1:
+            return direct_light
+        else: 
+            # cosine = dot(direction, surface_normal)
+            # bounce = substract(direction, scale(surface_normal, 2 * cosine))
+            through = refract(surface_normal, direction)
+            y_comp = scale(surface_normal, dot(direction, surface_normal))
+            bounce = substract(direction, scale(y_comp, 2))
+            reflected_light = ray_trace(surface, bounce, depth-1)
+            # refracted_light = ray_trace(surface, through, depth-1)
+            reflect_ratio = 0.5
+            refract_ratio = 0.3
+            return mix(direct_light, reflected_light, reflect_ratio)
+    else:
+        if depth == 1:
+            return mix(direct_light, black, 0.3)
+        else:
+            through = refract(surface_normal, direction)
+            y_comp = scale(surface_normal, dot(direction, surface_normal))
+            bounce = substract(direction, scale(y_comp, 2))
+            reflected_light = ray_trace(surface, bounce, depth-1)
+            return mix(mix(direct_light, black, 0.3), reflected_light, 0.8)
+
+
+
+
+
+def refract(surface_normal, direction):
+    '''return the refracted light vector'''
+    surface_direction = scale(direction, 1)
+    cosine_i = dot(surface_direction, surface_normal)
+    sine_t2 = ((1/1.5)*(1/1.5)) * (1 - (cosine_i**2))
+    r = (1/1.5)*cosine_i - sqrt(1 - sine_t2)
+    return add(scale(surface_direction, 1/1.5), scale(surface_normal, r))
 
 
 def mix(direct_light, reflected_light, r):
