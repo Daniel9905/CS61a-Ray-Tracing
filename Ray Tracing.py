@@ -105,11 +105,11 @@ def color_palette():
         check_EOF()
 
 
-
 bright_color(0.2)
-color_palette()
-
+# color_palette()
+# use brighten_color sets
 color = brighten_color
+
 
 black = color['black']
 white = color['white']
@@ -128,23 +128,53 @@ table_brown = color['table_brown']
 
 
 #Scene
-origin = (0, 0, 0)
+scene = {
+    'origin' : (0, 0, 0),
+    'light' : (2, 2, 0),
+}
+
 camera = (0, 1, 0)
-light = (2, 2, 0)
-black = (0, 0, 0)
+origin = scene['origin']
+light = scene['light']
 ambient = 0.2
-sphere = (1, (0, 1, 3), light_blue) # radius, position, color
 spheres = [
-    (500, (0, -500, 0), table_brown),
-    (2, (0,    2,  10), orange), # Red sphere
-    # (1,   (-2,   1, 4), light_green), # Green sphere
-    # (1,   (2,    1, 4), light_blue), # Blue sphere
+    (500, (0, -500, 0), table_brown), # radius, position, color
+    (2, (0,    2,  10), orange), 
     (0.8, (-1, 1, 3**0.5 + 3), light_green),
     (1, (-2, 1, 2 * 3**0.5 + 3), red),
     (0.8, (1, 1, 3**0.5 + 3), light_blue),
     (1, (2, 1, 2 * 3**0.5 + 3), violet),
 ]
 
+# rotate the scene
+def rotation_yzplane(pos, angle):
+    x, y, z = pos
+    y, z = cos(angle) * y - sin(angle) * z, sin(angle) * y + cos(angle) * z 
+    return (x, y, z)
+
+def rotation_xzplane(pos, angle):
+    x, y, z = pos
+    x, z = cos(angle) * x - sin(angle) * z, sin(angle) * x + cos(angle) * z 
+    return (x, y, z)
+
+def rotate_scene():
+    for setup in scene:
+        scene[setup] = rotation_yzplane(scene[setup], -pi/6)
+    for index in range(len(spheres)):
+        center, pos, color = spheres[index]
+        spheres[index] = center, rotation_yzplane(pos, -pi/6), color
+
+rotate_scene()
+camera = camera[0], camera[1] + 4, camera[2]
+
+# sphere_pos = {}
+# index = 0
+# for sphere in spheres:
+#     sphere_pos['sphere{0}'.format(index)] = sphere[1]
+#     index += 1
+
+# print(scene)
+# print(sphere_pos)
 
 # Render the image
 def render():
@@ -212,6 +242,6 @@ def intersect(source, direction, sphere, min_dis = 0.001):
                 return t
     
 
-# render()
+render()
 print("Done!")
 exitonclick()
