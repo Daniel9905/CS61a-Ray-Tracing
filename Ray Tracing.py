@@ -1,7 +1,7 @@
 
 from turtle import *
 from tkinter import *
-from math import sin, sqrt
+from math import sin, sqrt, cos, pi
 
 
 canvas = getcanvas()
@@ -58,20 +58,72 @@ def length(a):
     return sqrt(dot(a, a))
 
 #Color
-black = (0, 0, 0)
-white = (1, 1, 1)
+color = {
+    'black': (0, 0, 0),
+    'white': (1, 1, 1),
+    'red' : (1, 0, 0),
+    'green' : (0, 1, 0),
+    'blue' : (0, 0, 1),
+    'yellow' : (1, 1, 0),
+    'teal' : (0, 0.63, 0.63),
+    'orange' : (1, 0.39, 0),
+    'orange_red' : (1, 0.27, 0),
+    'light_blue' : (0, 0.8, 1),
+    'light_green' : (0.31, 1, 0.31),
+    'violet' : (0.93, 0.51, 0.93),
+    'table_brown' : (0.57, 0.43, 0.24),
+}
 
-red = (1, 0, 0)
-green = (0, 1, 0)
-blue = (0, 0, 1)
-yellow = (1, 1, 0)
-teal = (0, 0.63, 0.63)
-orange = (1, 0.39, 0)
-orange_red = (1, 0.27, 0)
-light_blue = (0, 0.8, 1)
-light_green = (0.31, 1, 0.31)
-violet = (0.93, 0.51, 0.93)
-table_brown = (0.57, 0.43, 0.24)
+def bright_color(amount):
+    global brighten_color
+    brighten_color = { 'black': (0, 0, 0), 'white': (1, 1, 1)}
+    for i in list(color.keys())[2:]:
+        x, y, z = color[i]
+        # r = 1 + cos((x + y + z)*pi/6)
+        brighten_color[i] = tuple(min(i*(1-amount) + amount, 1) for i in color[i])
+
+def color_palette():
+
+    def new_line():
+        nonlocal pos_x, pos_y, size
+        pos_x, pos_y = 0, pos_y + size  
+    def check_EOF():
+        nonlocal pos_x
+        if pos_x > width:
+            new_line()
+        else:
+            pos_x += size
+
+    pos_x, pos_y = 0, 0
+    size = 50
+    for key in color:
+        pixel_block((pos_x, pos_y), color[key], size)
+        check_EOF()
+    new_line()
+    for key in brighten_color:
+        pixel_block((pos_x, pos_y), brighten_color[key], size)
+        check_EOF()
+
+
+
+bright_color(0.2)
+color_palette()
+
+color = brighten_color
+
+black = color['black']
+white = color['white']
+red = color['red']
+green = color['green']
+blue = color['blue']
+yellow = color['yellow']
+teal = color['teal']
+orange = color['orange']
+orange_red = color['orange_red']
+light_blue = color['light_blue']
+light_green = color['light_green']
+violet = color['violet']
+table_brown = color['table_brown']
 
 
 
@@ -160,6 +212,6 @@ def intersect(source, direction, sphere, min_dis = 0.001):
                 return t
     
 
-render()
+# render()
 print("Done!")
 exitonclick()
