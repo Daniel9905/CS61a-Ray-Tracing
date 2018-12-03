@@ -165,16 +165,13 @@ def rotate_scene():
         spheres[index] = center, rotation_yzplane(pos, -pi/6), color
 
 rotate_scene()
-camera = camera[0], camera[1] + 4, camera[2]
 
-# sphere_pos = {}
-# index = 0
-# for sphere in spheres:
-#     sphere_pos['sphere{0}'.format(index)] = sphere[1]
-#     index += 1
+def adjust_camera(x, y, z):
+    global camera
+    camera = camera[0] + x, camera[1] + y, camera[2] + z
 
-# print(scene)
-# print(sphere_pos)
+adjust_camera(0, 4, 0)
+
 
 # Render the image
 def render():
