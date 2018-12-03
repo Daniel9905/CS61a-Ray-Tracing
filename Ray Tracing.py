@@ -2,6 +2,8 @@
 from turtle import *
 from tkinter import *
 from math import sin, sqrt, cos, pi
+import numpy as np
+
 
 
 canvas = getcanvas()
@@ -146,16 +148,27 @@ spheres = [
     (1, (2, 1, 2 * 3**0.5 + 3), violet),
 ]
 
-# rotate the scene
+#Rotate the scene
+def rotate(rotmat, pos):
+    '''Take in POS and return the tuple of new position applying 3-3 matrix ROTMAT'''
+    new_pos = np.matmul(rotmat, pos).tolist()
+    return tuple(i for i in new_pos)
+
 def rotation_yzplane(pos, angle):
-    x, y, z = pos
-    y, z = cos(angle) * y - sin(angle) * z, sin(angle) * y + cos(angle) * z 
-    return (x, y, z)
+    rotmat = [
+        [1, 0 , 0],
+        [0, cos(angle), -sin(angle)],
+        [0, sin(angle), cos(angle)]
+    ]
+    return rotate(rotmat, pos)
 
 def rotation_xzplane(pos, angle):
-    x, y, z = pos
-    x, z = cos(angle) * x - sin(angle) * z, sin(angle) * x + cos(angle) * z 
-    return (x, y, z)
+    rotmat = [
+        [0, cos(angle), -sin(angle)],
+        [1, 0 , 0],
+        [0, sin(angle), cos(angle)]
+    ]
+    return rotate(rotmat, pos)
 
 def rotate_scene():
     for setup in scene:
